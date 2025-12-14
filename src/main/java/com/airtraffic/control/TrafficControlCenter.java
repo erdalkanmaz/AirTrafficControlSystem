@@ -1,6 +1,7 @@
 package com.airtraffic.control;
 
 import com.airtraffic.map.CityMap;
+import com.airtraffic.model.CollisionRisk;
 import com.airtraffic.model.Position;
 import com.airtraffic.model.Vehicle;
 import com.airtraffic.rules.TrafficRuleEngine;
@@ -25,6 +26,7 @@ public class TrafficControlCenter {
     private Map<String, Vehicle> activeVehicles;       // Aktif araçlar
     private Map<String, FlightAuthorization> authorizations; // Uçuş izinleri
     private Quadtree vehicleIndex;                      // Spatial index for vehicles (Quadtree)
+    private CollisionDetectionService collisionService; // Çarpışma tespiti servisi
     private boolean isOperational;                      // Operasyonel mi?
 
     private TrafficControlCenter() {
@@ -33,6 +35,7 @@ public class TrafficControlCenter {
         this.activeVehicles = new ConcurrentHashMap<>();
         this.authorizations = new ConcurrentHashMap<>();
         this.ruleEngine = new TrafficRuleEngine();
+        this.collisionService = new CollisionDetectionService();
         this.isOperational = true;
     }
 
@@ -193,6 +196,18 @@ public class TrafficControlCenter {
             sendWarning(vehicleId, violations);
         }
 
+        // Çarpışma riski kontrolü
+        List<CollisionRisk> collisionRisks = collisionService.checkCollisionRisks(
+            vehicle, 
+            getActiveVehicles(), 
+            vehicleIndex
+        );
+
+        if (!collisionRisks.isEmpty()) {
+            // Çarpışma riski tespit edildi
+            handleCollisionRisks(vehicleId, collisionRisks);
+        }
+
         // Baz istasyonu bağlantılarını güncelle
         updateBaseStationConnections(vehicle);
     }
@@ -227,6 +242,66 @@ public class TrafficControlCenter {
     private void sendWarning(String vehicleId, List<TrafficRule> violations) {
         // Gerçek uygulamada iletişim protokolü üzerinden gönderilir
         System.out.println("UYARI: Araç " + vehicleId + " için " + violations.size() + " kural ihlali tespit edildi");
+    }
+
+    /**
+     * Çarpışma risklerini işler
+     */
+    private void handleCollisionRisks(String vehicleId, List<CollisionRisk> risks) {
+        for (CollisionRisk risk : risks) {
+            if (risk.isCritical()) {
+                // Kritik risk - acil uyarı
+                System.out.println("KRİTİK ÇARPIŞMA RİSKİ: Araç " + vehicleId + 
+                    " ve " + risk.getVehicleId2() + " arasında kritik çarpışma riski tespit edildi! " +
+                    "Tahmini çarpışma süresi: " + String.format("%.2f", risk.getEstimatedTimeToCollision()) + " saniye. " +
+                    "Önerilen aksiyon: " + risk.getRecommendedAction());
+            } else if (risk.requiresImmediateAction()) {
+                // Yüksek risk - uyarı
+                System.out.println("YÜKSEK ÇARPIŞMA RİSKİ: Araç " + vehicleId + 
+                    " ve " + risk.getVehicleId2() + " arasında yüksek çarpışma riski. " +
+                    "Mevcut mesafe: " + String.format("%.2f", risk.getCurrentDistance()) + " metre. " +
+                    "Önerilen aksiyon: " + risk.getRecommendedAction());
+            } else {
+                // Orta/düşük risk - bilgilendirme
+                System.out.println("ÇARPIŞMA RİSKİ: Araç " + vehicleId + 
+                    " ve " + risk.getVehicleId2() + " arasında çarpışma riski tespit edildi. " +
+                    "Risk seviyesi: " + risk.getRiskLevel() + ", Mesafe: " + 
+                    String.format("%.2f", risk.getCurrentDistance()) + " metre");
+            }
+        }
+    }
+
+    /**
+     * Belirli bir araç için çarpışma risklerini döndürür
+     * @param vehicleId Araç ID
+     * @return Çarpışma riskleri listesi
+     */
+    public List<CollisionRisk> getCollisionRisks(String vehicleId) {
+        Vehicle vehicle = activeVehicles.get(vehicleId);
+        if (vehicle == null) {
+            return new ArrayList<>();
+        }
+        return collisionService.checkCollisionRisks(vehicle, getActiveVehicles(), vehicleIndex);
+    }
+
+    /**
+     * Tüm aktif araçlar için kritik çarpışma risklerini döndürür
+     * @return Kritik çarpışma riskleri listesi
+     */
+    public List<CollisionRisk> getCriticalCollisionRisks() {
+        List<CollisionRisk> allRisks = new ArrayList<>();
+        for (Vehicle vehicle : activeVehicles.values()) {
+            List<CollisionRisk> risks = collisionService.checkCollisionRisks(
+                vehicle, 
+                getActiveVehicles(), 
+                vehicleIndex
+            );
+            // Sadece kritik riskleri ekle
+            risks.stream()
+                .filter(CollisionRisk::isCritical)
+                .forEach(allRisks::add);
+        }
+        return allRisks;
     }
 
     /**
@@ -286,6 +361,13 @@ public class TrafficControlCenter {
 
     public void setOperational(boolean operational) {
         isOperational = operational;
+    }
+
+    /**
+     * Çarpışma tespiti servisini döndürür
+     */
+    public CollisionDetectionService getCollisionService() {
+        return collisionService;
     }
 }
 

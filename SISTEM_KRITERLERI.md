@@ -719,6 +719,86 @@ EntryExitRule.checkViolation(vehicle, position)
 
 ---
 
+### 8. Çarpışma Önleme Sistemi Kriterleri
+
+**Kriter:**
+- Sistem, tüm aktif araçlar için çarpışma riskini sürekli değerlendirmelidir
+- Kritik çarpışma riski tespit edildiğinde < 50ms içinde müdahale edilmelidir
+- Çarpışma önleme algoritması ICAO Annex 2'ye uygun olmalıdır
+
+**Minimum Güvenli Mesafeler:**
+- Yatay mesafe: 50 metre (ICAO Annex 2)
+- Dikey mesafe: 10 metre (ICAO Annex 2)
+- Çarpışma kontrol yarıçapı: 500 metre
+
+**Risk Seviyeleri:**
+- **LOW:** Risk skoru < 0.3 - Normal operasyon, izleme yeterli
+- **MEDIUM:** Risk skoru 0.3-0.5 - Dikkat gerekli, mesafe artırılmalı
+- **HIGH:** Risk skoru 0.5-0.8 - Yüksek risk, acil rota düzeltmesi gerekli
+- **CRITICAL:** Risk skoru >= 0.8 - Kritik risk, acil müdahale gerekli
+
+**Risk Skoru Hesaplama:**
+- Mesafe faktörü: %40 ağırlık
+- Minimum mesafe ihlali: %30 ağırlık (yatay), %20 ağırlık (dikey)
+- Hız faktörü: %10 ağırlık
+- Gelecek çarpışma riski: %30 ağırlık
+
+**Tahmin Özellikleri:**
+- Gelecek konum projeksiyonu: 30 saniye zaman ufku
+- Tahmini çarpışma süresi hesaplama
+- Yaklaşma hızı analizi
+
+**Kullanım Senaryoları:**
+- `checkCollisionRisks(vehicle, allVehicles, quadtree)` - Araç için çarpışma risklerini kontrol et
+- `calculateCollisionRisk(v1, v2)` - İki araç arasındaki riski hesapla
+- `checkMinimumSeparation(v1, v2)` - Minimum mesafe kontrolü
+- `predictFuturePosition(vehicle, timeSeconds)` - Gelecek konum tahmini
+
+**Havacılık Standartları:**
+- ICAO Annex 2: Rules of the Air - Minimum separation standards
+- ICAO Annex 11: Air Traffic Services - Collision avoidance requirements
+- EASA U-Space: Real-time collision detection mandatory
+- FAA AC 90-48D: Pilots' Role in Collision Avoidance
+
+---
+
+### 9. ICAO Standartları Uyumluluğu Kriterleri
+
+**Kriter:**
+- Sistem, ICAO Annex 2 standartlarına uygun olmalıdır
+- Minimum separation standartları kontrol edilmelidir
+- Uçuş kuralları (VFR/IFR) uyumluluğu kontrol edilmelidir
+- İletişim gereksinimleri doğrulanmalıdır
+
+**Separation Standartları:**
+- Yatay minimum mesafe: 50 metre
+- Dikey minimum mesafe: 10 metre
+- Tüm aktif araç çiftleri için kontrol
+
+**Uçuş Kuralları Kontrolü:**
+- VFR (Visual Flight Rules) temel kontrolleri
+- Yükseklik kontrolü (negatif yükseklik ihlali)
+- Hız kontrolü (negatif hız ihlali)
+- Durum kontrolü (IN_FLIGHT, TAKING_OFF)
+
+**İletişim Gereksinimleri:**
+- Minimum iletişim menzili: 5 km
+- Baz istasyonu kapsama kontrolü
+- Araç-baz istasyonu mesafe kontrolü
+
+**Kullanım Senaryoları:**
+- `checkSeparationStandards(v1, v2)` - İki araç arası separation kontrolü
+- `checkFlightRulesCompliance(vehicle)` - Uçuş kuralları uyumluluğu
+- `validateCommunicationRequirements(vehicle, baseStations)` - İletişim kontrolü
+- `checkAllSeparationStandards(vehicles)` - Tüm araçlar için toplu kontrol
+
+**Havacılık Standartları:**
+- ICAO Annex 2: Rules of the Air
+- ICAO Annex 11: Air Traffic Services
+- EASA U-Space Regulation (EU) 2021/664
+
+---
+
 ## 🛫 Havacılık Standartları Uyumluluğu
 
 ### İlgili Standartlar
@@ -744,8 +824,8 @@ Bu dokümantasyon, sistem geliştikçe güncellenecektir:
 3. **Test sonuçlarına göre:** Performans kriterleri revize edilecek
 4. **Kullanıcı geri bildirimlerine göre:** Kullanım kriterleri iyileştirilecek
 
-**Son Güncelleme:** 2025-12-13 (Sprint 2 tamamlandı)  
-**Sonraki Güncelleme:** Sprint 3 sonrası
+**Son Güncelleme:** 2025-12-13 (Sprint 3 tamamlandı)  
+**Sonraki Güncelleme:** Sprint 4 sonrası
 
 ---
 

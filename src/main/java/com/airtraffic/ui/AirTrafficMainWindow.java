@@ -56,6 +56,14 @@ public class AirTrafficMainWindow extends Application {
         CityMap sampleMap = createSampleCityMap();
         controlCenter.loadCityMap(sampleMap); // Control center'a harita yükle
         
+        // Test için baz istasyonu ekle (ICAO standartları testi için)
+        com.airtraffic.control.BaseStation baseStation = new com.airtraffic.control.BaseStation(
+            "BS-001", 
+            new Position(41.0082, 28.9784, 50.0), 
+            5000.0 // 5km menzil
+        );
+        controlCenter.addBaseStation(baseStation);
+        
         // Harita görselleştirmesi oluştur
         mapVisualization = new MapVisualization();
         mapVisualization.setCityMap(sampleMap); // Test için örnek harita
@@ -268,22 +276,26 @@ public class AirTrafficMainWindow extends Application {
         vehicle1.setFuelLevel(75.0);
         vehicle1.setPilotLicense("PILOT-001");
         vehicle1.setHeading(45.0); // Northeast direction
+        vehicle1.setMaxSpeed(50.0);
         
-        // Örnek araç 2: Yolcu aracı
-        Vehicle vehicle2 = new Vehicle(VehicleType.PASSENGER, new Position(41.0100, 28.9800, 120.0));
+        // Örnek araç 2: Yolcu aracı - ÇARPIŞMA RİSKİ TESTİ İÇİN YAKIN KONUMLANDIRILDI
+        // Aynı konumda ama farklı yükseklikte (5m fark - minimum 10m gerekli)
+        Vehicle vehicle2 = new Vehicle(VehicleType.PASSENGER, new Position(41.0082, 28.9784, 105.0));
         vehicle2.setVelocity(20.0);
         vehicle2.setStatus(VehicleStatus.IN_FLIGHT);
         vehicle2.setFuelLevel(85.0);
         vehicle2.setPilotLicense("PILOT-002");
         vehicle2.setHeading(90.0); // East direction
+        vehicle2.setMaxSpeed(50.0);
         
-        // Örnek araç 3: Acil durum aracı
-        Vehicle vehicle3 = new Vehicle(VehicleType.EMERGENCY, new Position(41.0050, 28.9750, 80.0));
+        // Örnek araç 3: Acil durum aracı - Güvenli mesafede
+        Vehicle vehicle3 = new Vehicle(VehicleType.EMERGENCY, new Position(41.0150, 28.9850, 120.0));
         vehicle3.setVelocity(25.0);
         vehicle3.setStatus(VehicleStatus.IN_FLIGHT);
         vehicle3.setFuelLevel(90.0);
         vehicle3.setPilotLicense("PILOT-003");
         vehicle3.setHeading(180.0); // South direction
+        vehicle3.setMaxSpeed(50.0);
         
         // Uçuş izinleri al ve araçları kaydet
         // Şehir sınırları: lat 40.8-41.2, lon 28.6-29.3
@@ -325,6 +337,45 @@ public class AirTrafficMainWindow extends Application {
             // Araç listesini güncelle
             vehicleListView.refresh();
             System.out.println("Aktif araç sayısı: " + controlCenter.getActiveVehicles().size());
+            
+            // Sprint 3 Test: Çarpışma kontrolü testi için araç konumlarını güncelle
+            // Araç 1 ve 2'yi birbirine yakın konumlandır (çarpışma riski oluştur)
+            System.out.println("\n=== SPRINT 3 TEST: Çarpışma Kontrolü ===");
+            System.out.println("Araç 1 ve 2 birbirine çok yakın konumlandırıldı (çarpışma riski testi)");
+            System.out.println("Konum güncellemesi yapıldığında çarpışma kontrolü otomatik çalışacak...\n");
+            
+            // Konum güncellemesi yaparak çarpışma kontrolünü tetikle
+            // Araç 1 ve 2 aynı konumda ama farklı yükseklikte (5m fark - minimum 10m gerekli)
+            controlCenter.updateVehiclePosition(vehicle1.getId(), new Position(41.0082, 28.9784, 100.0));
+            controlCenter.updateVehiclePosition(vehicle2.getId(), new Position(41.0082, 28.9784, 105.0));
+            
+            // Sprint 3 Test: ICAO Standartları kontrolü
+            System.out.println("\n=== SPRINT 3 TEST: ICAO Standartları Kontrolü ===");
+            com.airtraffic.standards.ICAOStandardsCompliance icaoCompliance = 
+                new com.airtraffic.standards.ICAOStandardsCompliance();
+            com.airtraffic.standards.ComplianceResult complianceResult = 
+                icaoCompliance.checkSeparationStandards(vehicle1, vehicle2);
+            System.out.println("ICAO Uyumluluk Durumu: " + (complianceResult.isCompliant() ? "UYUMLU" : "UYUMSUZ"));
+            if (!complianceResult.getViolations().isEmpty()) {
+                System.out.println("İhlaller:");
+                complianceResult.getViolations().forEach(v -> System.out.println("  - " + v));
+            }
+            if (!complianceResult.getRecommendations().isEmpty()) {
+                System.out.println("Öneriler:");
+                complianceResult.getRecommendations().forEach(r -> System.out.println("  - " + r));
+            }
+            System.out.println();
+            
+            // Çarpışma risklerini sorgula
+            System.out.println("=== Çarpışma Riskleri Sorgulama ===");
+            java.util.List<com.airtraffic.model.CollisionRisk> risks1 = controlCenter.getCollisionRisks(vehicle1.getId());
+            java.util.List<com.airtraffic.model.CollisionRisk> risks2 = controlCenter.getCollisionRisks(vehicle2.getId());
+            System.out.println("Araç 1 için çarpışma riskleri: " + risks1.size());
+            System.out.println("Araç 2 için çarpışma riskleri: " + risks2.size());
+            
+            java.util.List<com.airtraffic.model.CollisionRisk> criticalRisks = controlCenter.getCriticalCollisionRisks();
+            System.out.println("Kritik çarpışma riskleri: " + criticalRisks.size());
+            System.out.println();
         } catch (Exception e) {
             // Hata durumunda detaylı log
             System.err.println("Örnek araç ekleme hatası: " + e.getMessage());

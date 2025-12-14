@@ -28,10 +28,13 @@ Bu komut JavaFX modüllerini otomatik olarak yapılandırır ve uygulamayı çal
 2. **VM Options Ekle:**
    - "VM options" alanına şunu ekleyin:
    ```
-   --module-path "${PATH_TO_JAVAFX}/lib" --add-modules javafx.controls,javafx.fxml,javafx.swing,javafx.graphics
+   --module-path "C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-controls\17.0.10\javafx-controls-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-fxml\17.0.10\javafx-fxml-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-swing\17.0.10\javafx-swing-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-graphics\17.0.10\javafx-graphics-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-base\17.0.10\javafx-base-17.0.10-win.jar" --add-modules javafx.controls,javafx.fxml,javafx.swing,javafx.graphics --add-opens javafx.base/javafx.util=ALL-UNNAMED --add-opens javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
    ```
    
-   **Not:** `${PATH_TO_JAVAFX}` yerine JavaFX SDK'nın yolunu yazın (ör: `C:\javafx-sdk-17.0.10`)
+   **ÖNEMLİ:** 
+   - Sadece `-win.jar` dosyalarını kullanın (sources.jar değil!)
+   - Her jar dosyasının tam yolunu belirtin
+   - Windows için `-win.jar` dosyaları kullanılmalı
 
 3. **Alternatif (Daha Kolay):**
    - IntelliJ IDEA'nın Maven tool window'unu açın
@@ -45,7 +48,10 @@ Eğer JavaFX SDK yüklü değilse:
 
 1. [OpenJFX Downloads](https://openjfx.io/) sayfasından JavaFX 17.0.10 SDK'yı indirin
 2. Bir klasöre çıkarın (ör: `C:\javafx-sdk-17.0.10`)
-3. Yöntem 2'deki VM options'da bu yolu kullanın
+3. Yöntem 2'deki VM options'da bu yolu kullanın:
+   ```
+   --module-path "C:\javafx-sdk-17.0.10\lib" --add-modules javafx.controls,javafx.fxml,javafx.swing,javafx.graphics --add-opens javafx.base/javafx.util=ALL-UNNAMED --add-opens javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+   ```
 
 ---
 
@@ -76,10 +82,7 @@ mvn test -Dtest=PositionTest
    - Test yapılandırmasını bulun
    - "VM options" alanına şunu ekleyin:
    ```
-   --add-modules javafx.controls,javafx.fxml,javafx.swing,javafx.graphics
-   --add-opens javafx.base/javafx.util=ALL-UNNAMED
-   --add-opens javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED
-   --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+   --module-path "C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-controls\17.0.10\javafx-controls-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-fxml\17.0.10\javafx-fxml-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-swing\17.0.10\javafx-swing-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-graphics\17.0.10\javafx-graphics-17.0.10-win.jar;C:\Users\ErdalKanmaz\.m2\repository\org\openjfx\javafx-base\17.0.10\javafx-base-17.0.10-win.jar" --add-modules javafx.controls,javafx.fxml,javafx.swing,javafx.graphics --add-opens javafx.base/javafx.util=ALL-UNNAMED --add-opens javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
    ```
 
 #### Backend Testleri:
@@ -96,7 +99,9 @@ mvn test -Dtest=PositionTest
 ### Hata: "Module not found"
 **Çözüm:** VM options'a modül path ekleyin (Yöntem 2)
 
+### Hata: "Two versions of module javafx.graphics found"
+**Çözüm:** Modül path'te sadece `-win.jar` dosyalarını kullanın, `sources.jar` dosyalarını kullanmayın. Her jar dosyasının tam yolunu belirtin.
+
 ---
 
 **Not:** En kolay yöntem Maven JavaFX plugin kullanmaktır (`mvn javafx:run`).
-
