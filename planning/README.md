@@ -23,3 +23,4 @@ Bu klasör, sprint planlarının versiyon geçmişini içerir.
 
 **Son Güncelleme:** 2025-12-13
 
+

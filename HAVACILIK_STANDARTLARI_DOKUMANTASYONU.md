@@ -326,3 +326,4 @@ Bu dokümantasyon, Urban Air Traffic Control System'in havacılık standartları
 
 **Not:** Bu dokümantasyon, sistem geliştirme sürecinde sürekli güncellenecektir. Her sprint sonunda ilgili bölümler revize edilecektir.
 
+

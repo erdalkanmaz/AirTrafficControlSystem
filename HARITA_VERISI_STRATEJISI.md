@@ -248,3 +248,4 @@ C: Evet, Sprint 3'te File → Load Map menüsü ile GeoJSON dosyası yükleme ö
 **Son Güncelleme:** 2025-12-13
 **Durum:** Test verisi ile devam ediyoruz, Sprint 3'te GeoJSON desteği eklenecek
 
+
